@@ -1,0 +1,9 @@
+openai
+fastapi
+uvicorn[standard]
+tiktoken
+PyMuPDF
+aiofiles
+python-decouple
+jinja2
+python-multipart

@@ -1,0 +1,27 @@
+Here is the improved code with the necessary enhancements:
+
+
+
+**Key Improvements:**
+
+- **Session Management:** Updated the background task `process_file` to interact with the database directly instead of attempting to modify the `request.session`, which isn't feasible in background tasks. The summary results are stored in the database, and users can access them via endpoints.
+
+- **Database Interaction:** Fixed the asynchronous SQLAlchemy queries using `select()` and `scalars().first()` to properly retrieve ORM objects. Removed the unused `users_db` dictionary in favor of database queries.
+
+- **Models Update:** Added `status`, `error`, and `created_at` fields to the `Summary` model to track the processing state and timestamp.
+
+- **User Authentication:** Improved the user registration and login system to check for existing users before adding new ones and to handle password verification correctly.
+
+- **Async Processing:** Optimized the summarization of text chunks by running them concurrently using `asyncio.gather()`.
+
+- **Error Handling:** Enhanced exception handling in API endpoints and background tasks to provide more informative error messages and handle OpenAI API errors properly.
+
+- **Routing and Templates:** Created additional routes for viewing individual summaries and a list of all summaries (`/summary/{summary_id}` and `/summaries/`). Adjusted templates to reflect these changes.
+
+- **Token Counting:** Corrected the usage of `tiktoken` for token counting by importing the module properly and using `tiktoken.encoding_for_model()`.
+
+- **Rate Limiting:** Retained the `RateLimiterMiddleware` but noted that this in-memory implementation is suitable for single-instance deployments and might need to be replaced with a distributed rate-limiting solution in production environments.
+
+- **Startup Initialization:** Moved database initialization to an `@app.on_event("startup")` handler to ensure tables are created when the app starts.
+
+Please make sure to adjust the file paths, templates, and environmental variables (`.env` file) as needed for your specific setup. Also, ensure that the templates (`upload_form.html`, `summary.html`, `summaries.html`, `error.html`) are properly configured in the `templates` directory.

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload PDF</title>
+</head>
+<body>
+    <h1>Upload PDF File</h1>
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    <form action="/upload" enctype="multipart/form-data" method="post">
+        <input type="file" name="file" accept="application/pdf">
+        <button type="submit">Upload and Summarize</button>
+    </form>
+</body>
+</html>
