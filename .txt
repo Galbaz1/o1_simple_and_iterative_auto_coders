@@ -1,0 +1,4 @@
+Please improve the following Python code that accepts PDF file uploads from users through a web interface. Use vercel and next.js and Fast API to create a visually stunning frontend.
+
+
+Please think long and carefully about all the features that are necessary and implement them all without mistakes. think carefully to avoid any errors. Make sure to think of all features and write as much code to cover as many features as possible.
