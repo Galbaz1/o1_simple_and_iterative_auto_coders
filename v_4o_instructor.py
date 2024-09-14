@@ -5,6 +5,10 @@ import asyncio
 from typing import List
 import json
 from termcolor import colored
+import random
+
+# List of available colors for termcolor
+COLORS = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan']
 
 class Reflection(BaseModel):
     reflection: str = Field(..., description="The entire reflection that went before arriving at the conclusion")
@@ -14,12 +18,13 @@ class Object(BaseModel):
     reflection: List[Reflection] 
     color: str = Field(..., description="The color of the object")
 
-client = instructor.from_openai(AsyncOpenAI(), mode=instructor.Mode.JSON_O1)
+client = instructor.from_openai(AsyncOpenAI())
 
 async def extract_object_info(obj: str):
     resp = await client.chat.completions.create(
-        model="o1-preview",
+        model="gpt-4o",
         response_model=Object,
+        temperature=0.0,
         max_retries=3,
         messages=[
             {
@@ -28,32 +33,33 @@ async def extract_object_info(obj: str):
             },
         ],
     )
-    
-    # Extract the completion_tokens_details
-    completion_tokens_details = resp.usage.completion_tokens_details
-    
-    # Convert the pydantic model to a dictionary
-    object_info = json.loads(resp.model_dump_json())
-    
-    # Add the completion_tokens_details to the object_info
-    object_info['completion_tokens_details'] = completion_tokens_details
-    
-    return object_info
+    return json.loads(resp.model_dump_json())
 
 async def process_objects():
     objects = ["moonstone", "plutonium", "Pearl"]
-    for obj in objects:
-        try:
-            object_info = await extract_object_info(obj)
-            print(colored(json.dumps(object_info, indent=2), 'cyan'))
-        except instructor.exceptions.InstructorRetryException as e:
+    tasks = [extract_object_info(obj) for obj in objects]
+    
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    used_colors = set()
+    for obj, result in zip(objects, results):
+        # Choose a random color that hasn't been used recently
+        available_colors = list(set(COLORS) - used_colors)
+        if not available_colors:
+            available_colors = COLORS
+        color = random.choice(available_colors)
+        used_colors.add(color)
+        if len(used_colors) > len(COLORS) // 2:
+            used_colors.pop()
+
+        if isinstance(result, Exception):
             error_response = {
                 "error": f"Extraction failed for {obj}",
-                "attempts": e.n_attempts,
-                "last_error": str(e),
-                "last_completion": e.last_completion
+                "last_error": str(result),
             }
-            print(colored(json.dumps(error_response, indent=2), 'red'))
+            print(colored(json.dumps(error_response, indent=2), color))
+        else:
+            print(colored(json.dumps(result, indent=2), color))
 
 if __name__ == "__main__":
     asyncio.run(process_objects())
