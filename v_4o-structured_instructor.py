@@ -1,5 +1,5 @@
-from openai import AsyncOpenAI
 from instructor import from_openai, Mode, exceptions
+from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 import asyncio
 from typing import List
@@ -17,7 +17,7 @@ class Object(BaseModel):
     color: str = Field(..., description="The color of the object")
 
 # Initialize the OpenAI client with instructor wrapper
-client = from_openai(AsyncOpenAI(), mode=Mode.JSON_O1)
+client = from_openai(AsyncOpenAI(), mode=Mode.TOOLS_STRICT)
 
 # Asynchronous function to extract information about a given object
 async def extract_object_info(obj: str):
@@ -31,11 +31,15 @@ async def extract_object_info(obj: str):
         dict: A dictionary containing the extracted object information.
     """
     resp = await client.chat.completions.create(
-        model="o1-preview",
+        model="gpt-4o-2024-08-06",
         response_model=Object,
         max_retries=3,
+        temperature=0.0,
         messages=[
-            #no system message allowed with o1 model
+            {
+                "role": "system",
+                "content": "You are a color expert. Describe the exact color of the object."
+            },
             {
                 "role": "user",
                 "content": f"""Describe the exact color of the object: {obj}."""
